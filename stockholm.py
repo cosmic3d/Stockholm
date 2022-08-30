@@ -67,7 +67,7 @@ def reverse():
         except:
             printcolor(file + " couldnt be decrypted", "red", silent)
     if (not decrypted_files):
-        printcolor("\n\nDecryption has failed. No files were encrypted\n", "red", silent)
+        printcolor("\n\nDecryption has failed. No files were decrypted\n", "red", silent)
         exit()
     printcolor("\n\nEncryption has been completed\n", "yellow", silent)
     exit()
@@ -164,7 +164,18 @@ if (not cryfiles):
     exit()
 key = Fernet.generate_key()
 
-
+contentfiles = []
+for file in cryfiles:
+    try:
+        with open(file, "rb") as thefile:
+            contents = thefile.read()
+        if (contents):
+            contentfiles.append(contents)
+    except:
+        continue
+if (not contentfiles):
+    printcolor("The files you can encrypt are empty. There is nothing to encrypt", "red", silent)
+    exit()
 with open(".not_the_key.key", "wb") as thekey:
     thekey.write(key)
 
